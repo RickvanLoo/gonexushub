@@ -100,4 +100,9 @@ func (p Prices) print() {
 	graph := asciigraph.Plot(data, asciigraph.Height(10), asciigraph.Width(50))
 
 	fmt.Println(graph)
+	
+	TimeAgo := time.Since(p.Data[0].ScannedAt)
+	days := fmt.Sprintf("%f", TimeAgo.Hours()/24)
+	fmt.Println("Oldest Data Point: " + p.Data[0].ScannedAt.String() + ", " + TimeAgo.String() + " ago. => "+ days +"days")
+
 }
