@@ -36,6 +36,12 @@ func main() {
 		callClear()
 
 		input = reg.ReplaceAllString(input, "-")
+		
+		//Windows Bullshit
+		input = strings.TrimSuffix(input, "-")
+		
+		input = strings.ToLower(input)
+		
 		fmt.Println("Searching for: " + input)
 		processInput(input)
 	}
