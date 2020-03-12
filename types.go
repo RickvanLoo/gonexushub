@@ -79,10 +79,11 @@ func (i Item) print() {
 	fmt.Println("Last Updated: " + i.Stats.LastUpdated.String() + ", " + TimeAgo.String() + " ago.")
 	fmt.Println("")
 
-	fmt.Println("Market Value:" + intToWoWString(i.Stats.Current.MarketValue))
-	fmt.Println("Minimum Buyout:" + intToWoWString(i.Stats.Current.MinBuyout))
-	fmt.Println("Num Auctions:" + strconv.Itoa(i.Stats.Current.NumAuctions))
-	fmt.Println("Quantity:" + strconv.Itoa(i.Stats.Current.Quantity))
+	fmt.Println("Market Value: " + intToWoWString(i.Stats.Current.MarketValue) + " (14 day weighted avg, favoring last 3 days)")
+	fmt.Println("Historic Value: " + intToWoWString(i.Stats.Current.HistoricalValue) + " (60 day avg)")
+	fmt.Println("Current Minimum Buyout: " + intToWoWString(i.Stats.Current.MinBuyout))
+	fmt.Println("Num Auctions: " + strconv.Itoa(i.Stats.Current.NumAuctions))
+	fmt.Println("Quantity: " + strconv.Itoa(i.Stats.Current.Quantity))
 	fmt.Println("")
 }
 
@@ -92,14 +93,20 @@ func (p Prices) print() {
 	}
 
 	data := []float64{}
+	dat2 := []float64{}
 
 	for _, dat := range p.Data {
-		data = append(data, dat.MarketValue)
+		data = append(data, dat.MinBuyout)
+		dat2 = append(dat2, dat.MarketValue)
 	}
 
 	graph := asciigraph.Plot(data, asciigraph.Height(10), asciigraph.Width(50))
-
+	fmt.Println("Min Buyout Graph:")
 	fmt.Println(graph)
+	
+	graph2:= asciigraph.Plot(dat2, asciigraph.Height(10), asciigraph.Width(50))
+	fmt.Println("Market Value Graph:")
+	fmt.Println(graph2)
 	
 	TimeAgo := time.Since(p.Data[0].ScannedAt)
 	days := fmt.Sprintf("%f", TimeAgo.Hours()/24)
