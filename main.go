@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -36,15 +37,58 @@ func main() {
 		callClear()
 
 		input = reg.ReplaceAllString(input, "-")
-		
+
 		//Windows Bullshit
 		input = strings.TrimSuffix(input, "-")
-		
+
 		input = strings.ToLower(input)
-		
+
 		fmt.Println("Searching for: " + input)
 		processInput(input)
 	}
+}
+
+//PlaceHolder
+func searchItem(input string) (string, error) {
+	EntryPoint := "https://api.nexushub.co/wow-classic/v1/search?query="
+
+	//Get Item
+
+	input = strings.Replace(input, " ", "%20", -1)
+
+	url := EntryPoint + input
+	nexusClient := http.Client{
+		Timeout: time.Second * 5,
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header.Set("User-Agent", "gonexushub")
+
+	res, getErr := nexusClient.Do(req)
+	if getErr != nil {
+		log.Fatal(getErr)
+	}
+
+	body, readErr := ioutil.ReadAll(res.Body)
+	if readErr != nil {
+		log.Fatal(readErr)
+	}
+
+	search := Search{}
+	jsonErr := json.Unmarshal(body, &search)
+	if jsonErr != nil {
+		log.Fatal(jsonErr)
+	}
+
+	if len(search) == 0 {
+		return "", errors.New("item not found")
+	}
+
+	return search[0].UniqueName, nil
 }
 
 func processInput(input string) {

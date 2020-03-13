@@ -9,6 +9,7 @@ import (
 	"github.com/guptarohit/asciigraph"
 )
 
+//Item is a WoW Classic Item
 type Item struct {
 	Server        string      `json:"server"`
 	ItemID        int         `json:"itemId"`
@@ -44,6 +45,7 @@ type Item struct {
 	} `json:"stats"`
 }
 
+//Prices is a struct showing current and old prices of Item
 type Prices struct {
 	Slug       string `json:"slug"`
 	ItemID     int    `json:"itemId"`
@@ -58,9 +60,17 @@ type Prices struct {
 	} `json:"data"`
 }
 
+//Search is an array of structs containing responds from a search query
+type Search []struct {
+	ItemID     int    `json:"itemId"`
+	Name       string `json:"name"`
+	UniqueName string `json:"uniqueName,omitempty"`
+	ImgURL     string `json:"imgUrl"`
+}
+
 func (i Item) print() {
 	if i.Name == "" {
-		fmt.Println("Item not found!")
+		fmt.Println("No Item Found!")
 		return
 	}
 
@@ -92,24 +102,41 @@ func (p Prices) print() {
 		return
 	}
 
+	if len(p.Data) == 0 {
+		fmt.Println("No market data found!")
+		return
+	}
+
 	data := []float64{}
 	dat2 := []float64{}
 
+	scale, graphUnit := graphScale(p.Data[0].MarketValue)
+
 	for _, dat := range p.Data {
-		data = append(data, dat.MinBuyout)
-		dat2 = append(dat2, dat.MarketValue)
+		data = append(data, dat.MinBuyout/scale)
+		dat2 = append(dat2, dat.MarketValue/scale)
 	}
 
 	graph := asciigraph.Plot(data, asciigraph.Height(10), asciigraph.Width(50))
-	fmt.Println("Min Buyout Graph:")
+	fmt.Println("Min Buyout Graph " + graphUnit)
 	fmt.Println(graph)
-	
-	graph2:= asciigraph.Plot(dat2, asciigraph.Height(10), asciigraph.Width(50))
-	fmt.Println("Market Value Graph:")
+
+	graph2 := asciigraph.Plot(dat2, asciigraph.Height(10), asciigraph.Width(50))
+	fmt.Println("Market Value Graph " + graphUnit)
 	fmt.Println(graph2)
-	
+
 	TimeAgo := time.Since(p.Data[0].ScannedAt)
 	days := fmt.Sprintf("%f", TimeAgo.Hours()/24)
-	fmt.Println("Oldest Data Point: " + p.Data[0].ScannedAt.String() + ", " + TimeAgo.String() + " ago. => "+ days +"days")
+	fmt.Println("Oldest Data Point: " + p.Data[0].ScannedAt.String() + ", " + TimeAgo.String() + " ago. => " + days + "days")
 
+}
+
+func graphScale(price float64) (float64, string) {
+	if price >= 10000 {
+		return 10000, "(g):"
+	} else if price <= 100 {
+		return 0, "(c):"
+	} else {
+		return 100, "(s):"
+	}
 }
